@@ -25,7 +25,21 @@ constexpr std::uint32_t kAudioSampleRate = 44'100u;
 
 } // namespace
 
-void PsmfDemuxer::reset() { *this = PsmfDemuxer{}; }
+void PsmfDemuxer::reset() {
+    const std::uint8_t audio_stream = audio_stream_;
+    *this = PsmfDemuxer{};
+    audio_stream_ = audio_stream;
+}
+
+void PsmfDemuxer::set_audio_stream(std::uint8_t private_id) {
+    audio_stream_ = private_id;
+    audio_.clear();
+    audio_stamps_.clear();
+    audio_units_.clear();
+    last_audio_pts_ = -1;
+    audio_frame_size_ = 0u;
+    audio_channels_ = 0u;
+}
 
 bool PsmfDemuxer::push_pack(std::span<const std::uint8_t> pack) {
     if (pack.size() < 14u || pack[0] != 0u || pack[1] != 0u || pack[2] != 1u || pack[3] != kPackStart) return false;
@@ -48,7 +62,7 @@ bool PsmfDemuxer::push_pack(std::span<const std::uint8_t> pack) {
         const auto payload = pack.subspan(header, end - header);
         if (stream == kVideoStream) {
             add_video(payload, pts, dts);
-        } else if (payload.size() > kPrivateHeader && payload[0] == 0u) {
+        } else if (payload.size() > kPrivateHeader && payload[0] == audio_stream_) {
             add_audio(payload.subspan(kPrivateHeader), pts);
         }
     }

@@ -31,7 +31,15 @@ struct AccessUnit {
 // stream's fixed frame rate.
 class PsmfDemuxer {
 public:
+    // Drops everything demultiplexed; the chosen audio stream stays.
     void reset();
+    // Which audio stream is taken, by its private stream id (the byte that
+    // starts a private stream 1 payload: 0, 1, ... one per audio stream in the
+    // header). A movie may carry several, such as one per language, and the
+    // game picks one with sceMpegRegistStream or scePsmfPlayerStart; the
+    // others are skipped. 0 until chosen. Drops the audio read so far.
+    void set_audio_stream(std::uint8_t private_id);
+    [[nodiscard]] std::uint8_t audio_stream() const noexcept { return audio_stream_; }
 
     // Adds one pack. Returns false if it is not a program stream pack.
     bool push_pack(std::span<const std::uint8_t> pack);
@@ -69,6 +77,7 @@ private:
     std::int64_t last_video_dts_{-1};
     bool ended_{};
 
+    std::uint8_t audio_stream_{};
     std::vector<std::uint8_t> audio_;
     std::deque<Stamp> audio_stamps_;
     std::deque<AccessUnit> audio_units_;

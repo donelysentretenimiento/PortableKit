@@ -19,6 +19,7 @@
 #include "audio/atrac_decoder.hpp"
 #include "movie/avc_decoder.hpp"
 #include "movie/psmf_demuxer.hpp"
+#include "movie/psmf_header.hpp"
 #include "movie/replacement_movie.hpp"
 #include "install/user_data.hpp"
 #include "settings/settings.hpp"
@@ -93,6 +94,8 @@ struct MpegState {
     std::uint32_t stream_packets{};  // packets in the movie, from its header
     std::uint32_t packets_demuxed{};
     std::map<std::uint32_t, StreamType> streams;  // handle -> type
+    std::vector<std::uint8_t> audio_ids;          // private stream ids of the movie's audio streams, from its header
+    std::uint32_t audio_number{};                 // the audio stream the game registered: the nth of those
     std::uint32_t next_stream{};
     movie::PsmfDemuxer demuxer;
     movie::AvcDecoder video;
@@ -196,6 +199,15 @@ void finish_traced(AllegrexContext &ctx, const char *name, std::uint32_t result,
         std::cerr << line.str() << "\n";
     }
     kernel().finish(ctx, result);
+}
+
+// Points the demuxer at the audio stream the game registered: its nth audio
+// stream, whose private stream id the header gives (when it has been seen;
+// the number itself otherwise, which is the id in every movie seen).
+void select_audio_stream(MpegState &state) {
+    const std::uint32_t id = state.audio_number < state.audio_ids.size() ? state.audio_ids[state.audio_number]
+                                                                          : state.audio_number;
+    state.demuxer.set_audio_stream(static_cast<std::uint8_t>(id));
 }
 
 std::uint32_t load_be32(const psprecomp::GuestMemory &memory, std::uint32_t address) {
@@ -386,7 +398,18 @@ void register_library(HleRegistrar &hle) {
         }
         const std::uint32_t offset = load_be32(memory, header + 8u);
         module().pending_stream_packets = load_be32(memory, header + 12u) / static_cast<std::uint32_t>(movie::kPackSize);
-        if (MpegState *state = find_mpeg(arg(ctx, 0))) state->stream_packets = module().pending_stream_packets;
+        if (MpegState *state = find_mpeg(arg(ctx, 0))) {
+            state->stream_packets = module().pending_stream_packets;
+            std::vector<std::uint8_t> bytes(static_cast<std::size_t>(offset));
+            if (offset >= 0x82u && offset <= 0x4000u && memory.contains(header, offset)) {
+                for (std::uint32_t i = 0; i < offset; ++i) bytes[i] = memory.load8(header + i);
+                state->audio_ids.clear();
+                if (const auto parsed = movie::parse_psmf_header(bytes))
+                    for (const movie::PsmfStream &stream : parsed->streams)
+                        if (stream.type() == 1) state->audio_ids.push_back(stream.private_id);
+                select_audio_stream(*state);
+            }
+        }
         memory.store32(arg(ctx, 2), offset);
         finish_traced(ctx, "sceMpegQueryStreamOffset", 0u, "offset=" + std::to_string(offset), 3u);
     });
@@ -411,7 +434,18 @@ void register_library(HleRegistrar &hle) {
         // Handles point into the work area, as the library's do.
         const std::uint32_t handle = state->work + 0x100u + 0x10u * state->next_stream++;
         state->streams[handle] = static_cast<StreamType>(arg(ctx, 1));
-        finish_traced(ctx, "sceMpegRegistStream", handle, {}, 3u);
+        // The number picks the audio stream, as PPSSPP's setAudioStream does:
+        // a movie with one audio stream per language is played in the one the
+        // game asks for.
+        if (static_cast<StreamType>(arg(ctx, 1)) == StreamType::Atrac) {
+            state->audio_number = arg(ctx, 2);
+            select_audio_stream(*state);
+        }
+        finish_traced(ctx, "sceMpegRegistStream", handle,
+                      static_cast<StreamType>(arg(ctx, 1)) == StreamType::Atrac
+                          ? "audio stream " + std::to_string(arg(ctx, 2)) + " of " + std::to_string(state->audio_ids.size())
+                          : std::string{},
+                      3u);
     });
     hle.add("sceMpeg", "sceMpegUnRegistStream", [](Runtime &, AllegrexContext &ctx) {
         if (MpegState *state = find_mpeg(arg(ctx, 0))) state->streams.erase(arg(ctx, 1));

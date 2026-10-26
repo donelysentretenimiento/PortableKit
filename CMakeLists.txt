@@ -271,6 +271,13 @@ if(PSPRECOMP_BUILD_TESTS)
     target_include_directories(portablekit_psmf_tests PRIVATE "${PORTABLEKIT_ROOT}/host")
     set_target_properties(portablekit_psmf_tests PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
     add_test(NAME portablekit_psmf_tests COMMAND portablekit_psmf_tests)
+
+    add_executable(portablekit_psmf_demuxer_tests
+        "${PORTABLEKIT_ROOT}/tests/psmf_demuxer_tests.cpp"
+        "${PORTABLEKIT_ROOT}/host/movie/psmf_demuxer.cpp")
+    target_include_directories(portablekit_psmf_demuxer_tests PRIVATE "${PORTABLEKIT_ROOT}/host")
+    set_target_properties(portablekit_psmf_demuxer_tests PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+    add_test(NAME portablekit_psmf_demuxer_tests COMMAND portablekit_psmf_demuxer_tests)
 endif()
 
 # The desktop app's response files for long compile and link command lines.

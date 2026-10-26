@@ -102,6 +102,8 @@ struct Player {
     std::uint32_t height{};
     std::uint32_t video_streams{};
     std::uint32_t audio_streams{};
+    std::vector<std::uint8_t> audio_ids;  // their private stream ids, in the header's order
+    std::uint32_t audio_number{};         // the audio stream scePsmfPlayerStart asked for: the nth of those
 
     // Playing it.
     std::uint64_t read{};  // bytes of the stream demultiplexed
@@ -149,6 +151,10 @@ void finish_traced(AllegrexContext &ctx, const char *name, std::uint32_t result,
 void rewind(Player &player) {
     player.read = 0u;
     player.demuxer = std::make_unique<movie::PsmfDemuxer>();
+    // The movie's nth audio stream (a movie may carry one per language); the
+    // first when the game asks for one it does not have.
+    if (player.audio_number < player.audio_ids.size())
+        player.demuxer->set_audio_stream(player.audio_ids[player.audio_number]);
     player.video = std::make_unique<movie::AvcDecoder>();
     (void)player.video->open();
     player.audio = std::make_unique<audio::AtracDecoder>();
@@ -292,10 +298,14 @@ std::uint32_t set_psmf(Player &player, const std::string &path) {
     if (streams > 128u) return player_error::kIllegalArgument;
     player.video_streams = 0u;
     player.audio_streams = 0u;
+    player.audio_ids.clear();
     for (std::uint32_t i = 0; i < streams && 0x82u + i * 16u + 16u <= header.size(); ++i) {
         const std::uint8_t id = header[0x82u + i * 16u];
         if ((id & 0xE0u) == 0xE0u) ++player.video_streams;
-        else if (id == 0xBDu) ++player.audio_streams;
+        else if (id == 0xBDu) {
+            ++player.audio_streams;
+            player.audio_ids.push_back(header[0x82u + i * 16u + 1u]);
+        }
     }
     player.width = header[0x8E] * 16u;
     player.height = header[0x8F] * 16u;
@@ -387,6 +397,7 @@ void register_player(HleRegistrar &hle) {
         if (arg(ctx, 2) != 0u)
             log_once("psmfplayer-seek", "[psmfplayer] starting a movie part-way through is not implemented; it "
                                         "starts from the beginning");
+        player->audio_number = memory.load32(data + 12u);
         player->play_mode = mode;
         player->play_speed = static_cast<std::int32_t>(memory.load32(data + 20u));
         rewind(*player);
