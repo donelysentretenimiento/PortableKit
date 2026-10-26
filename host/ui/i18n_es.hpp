@@ -1,3 +1,4 @@
+// Copyright (c) 2026 Donelys. MIT License (see LICENSE).
 #pragma once
 
 #include <cstddef>

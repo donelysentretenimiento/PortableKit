@@ -1,3 +1,4 @@
+// Copyright (c) 2026 Donelys. MIT License (see LICENSE).
 // Which audio stream the demuxer takes from a movie that carries several (one
 // per language), on packs built here in the layout of a PSMF's program stream.
 // No game data.

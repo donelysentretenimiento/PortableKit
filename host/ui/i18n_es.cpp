@@ -1,3 +1,4 @@
+// Copyright (c) 2026 Donelys. MIT License (see LICENSE).
 // Spanish (Spain) for the interface (ui/i18n.hpp). Same layout as the Portuguese
 // table in i18n.cpp: the English text exactly as the code writes it, then its
 // translation, with every {} kept where the code puts a name or a number. Kept
