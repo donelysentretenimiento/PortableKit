@@ -6,6 +6,7 @@
 
 #include "kernel/rtc_time.hpp"
 #include "overlays.hpp"
+#include "settings/settings.hpp"
 
 #include "psprecomp/common.hpp"
 
@@ -51,6 +52,12 @@ std::uint32_t system_language() {
             char *end = nullptr;
             const unsigned long value = std::strtoul(text, &end, 10);
             if (end != text && *end == '\0' && value <= 11u) return static_cast<std::uint32_t>(value);
+        }
+        // The player's choice (Settings::game_language), else the profile's.
+        const std::string &chosen = settings::current().game_language;
+        if (!chosen.empty()) {
+            const unsigned long value = std::strtoul(chosen.c_str(), nullptr, 10);
+            if (value <= 11u) return static_cast<std::uint32_t>(value);
         }
         return portablekit::game().system_language;
     }();

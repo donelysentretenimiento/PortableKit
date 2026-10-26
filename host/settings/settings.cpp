@@ -454,6 +454,15 @@ const std::vector<Field> &fields() {
              return true;
          },
          [](const Settings &s) { return s.language; }, nullptr},
+        {"game.language", nullptr,
+         [](Settings &s, const std::string &t) {
+             if (!t.empty() && (t.size() > 2 || t.find_first_not_of("0123456789") != std::string::npos ||
+                                std::stoul(t) > 11u))
+                 return false;
+             s.game_language = t;
+             return true;
+         },
+         [](const Settings &s) { return s.game_language; }, nullptr},
         {"ui.last_folder", nullptr,
          [](Settings &s, const std::string &t) {
              s.last_folder = t;

@@ -348,6 +348,11 @@ const SpanishEntry kSpanish[] = {
     {"Language", "Idioma"},
     {"The language of this menu and the launcher. The game's own text is not changed.",
      "El idioma de este menú y del lanzador. El texto del propio juego no cambia."},
+    {"Interface language", "Idioma de la interfaz"},
+    {"Game language", "Idioma del juego"},
+    {"The language the game itself plays in: its text, as far as the disc has it. Applies the next time the game starts.",
+     "El idioma en el que se juega el propio juego: sus textos, en la medida en que el disco los incluye. Se "
+     "aplica la próxima vez que arranque el juego."},
     {"Open the data folder", "Abrir la carpeta de datos"},
     {"Show {}'s data folder in the file manager.", "Muestra la carpeta de datos de {} en el gestor de archivos."},
     {"Set up game data again…", "Volver a configurar los datos del juego…"},

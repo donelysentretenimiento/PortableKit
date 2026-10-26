@@ -18,6 +18,14 @@ void next_language();
 // The current language's own name: "English", "Português", "Español (España)".
 [[nodiscard]] const char *language_name();
 
+// The console language the game itself runs in (Settings::game_language), apart
+// from the interface's: the name of the one chosen among the languages the
+// game's disc carries, and the step to the next, saved. Takes effect when the
+// game starts.
+[[nodiscard]] const char *game_language_name();
+void next_game_language();
+[[nodiscard]] bool has_game_languages();
+
 // `english` in the current language.
 [[nodiscard]] const char *tr(const char *english);
 [[nodiscard]] std::string tr(const std::string &english);

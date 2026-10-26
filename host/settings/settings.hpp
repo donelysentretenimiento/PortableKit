@@ -143,7 +143,8 @@ struct Settings {
     std::string last_folder;           // where the setup's file browser was last used
     bool launcher_skip{};              // start the game at once instead of showing the launcher
     bool launcher_backup{true};        // back the saves up each time the launcher starts the game
-    std::string language;              // the interface's language: "en", "pt"; empty: the system's
+    std::string language;              // the interface's language: "en", "pt", "es"; empty: the system's
+    std::string game_language;         // the console language the game is told (0 Japanese, 1 English, 2 French, 3 Spanish...); empty: the profile's
 
     // Saves
     bool backup_timestamp{true};       // a backup made from the menu goes to a new folder named by its time

@@ -4,6 +4,7 @@
 
 #include "ui/i18n.hpp"
 
+#include "../profile.hpp"
 #include "settings/settings.hpp"
 #include "ui/i18n_es.hpp"
 
@@ -354,6 +355,11 @@ constexpr Entry kPortuguese[] = {
     {"Language", "Idioma"},
     {"The language of this menu and the launcher. The game's own text is not changed.",
      "O idioma deste menu e do launcher. O texto do próprio jogo não muda."},
+    {"Interface language", "Idioma da interface"},
+    {"Game language", "Idioma do jogo"},
+    {"The language the game itself plays in: its text, as far as the disc has it. Applies the next time the game starts.",
+     "O idioma em que o próprio jogo é jogado: seus textos, na medida em que o disco os tem. Vale a partir da "
+     "próxima vez que o jogo iniciar."},
     {"Open the data folder", "Abrir a pasta de dados"},
     {"Show {}'s data folder in the file manager.", "Mostra a pasta de dados do {} no gerenciador de arquivos."},
     {"Set up game data again…", "Configurar os dados do jogo de novo…"},
@@ -618,6 +624,34 @@ void next_language() {
 const char *language_name() {
     const Language now = language();
     return now == Language::Portuguese ? "Português" : now == Language::Spanish ? "Español (España)" : "English";
+}
+
+namespace {
+// Index in the profile's game_languages of the one the game will be told.
+std::size_t game_language_index() {
+    const auto languages = portablekit::game().game_languages;
+    const std::string &chosen = settings::current().game_language;
+    for (std::size_t i = 0; i < languages.size(); ++i)
+        if (!chosen.empty() && std::to_string(languages[i].code) == chosen) return i;
+    for (std::size_t i = 0; i < languages.size(); ++i)
+        if (languages[i].code == portablekit::game().system_language) return i;
+    return 0;
+}
+} // namespace
+
+bool has_game_languages() { return !portablekit::game().game_languages.empty(); }
+
+const char *game_language_name() {
+    const auto languages = portablekit::game().game_languages;
+    return languages.empty() ? "" : languages[game_language_index()].name;
+}
+
+void next_game_language() {
+    const auto languages = portablekit::game().game_languages;
+    if (languages.empty()) return;
+    settings::current().game_language =
+        std::to_string(languages[(game_language_index() + 1) % languages.size()].code);
+    settings::save();
 }
 
 const char *tr(const char *english) {

@@ -341,6 +341,14 @@ struct GameProfile {
     // the game expects; the defaults are a Japanese one.
     std::uint32_t system_language = 0u;
     std::uint32_t confirm_button = 0u;
+    // The languages the game's disc really carries, which the player may pick
+    // as the console's language (Settings::game_language): each with the code
+    // sceUtilityGetSystemParamInt reports. Empty: the profile's alone.
+    struct GameLanguage {
+        std::uint32_t code;
+        const char *name;  // in its own language: "Español"
+    };
+    std::span<const GameLanguage> game_languages = {};
 
     // --- Texture packs -------------------------------------------------------
     // Disc ids of other releases whose texture packs fit this one: releases

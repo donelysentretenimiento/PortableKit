@@ -1540,7 +1540,12 @@ void Menu::system() {
         s.launcher_skip = !s.launcher_skip;
         settings::save();
     }
-    if (choice_row("Language", language_name(),
+    if (has_game_languages() &&
+        choice_row("Game language", game_language_name(),
+                   options_for("game.language", "The language the game itself plays in: its text, as far as the "
+                                                "disc has it. Applies the next time the game starts.")))
+        next_game_language();
+    if (choice_row("Interface language", language_name(),
                    options_for("ui.language", "The language of this menu and the launcher. The game's own text is "
                                               "not changed.")))
         next_language();
