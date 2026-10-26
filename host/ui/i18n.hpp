@@ -9,13 +9,13 @@
 // puts names or numbers into them. Text with no translation stays English.
 namespace portablekit::ui {
 
-enum class Language { English, Portuguese };
+enum class Language { English, Portuguese, Spanish };
 
 // The player's choice (Settings::language), else the system's language.
 [[nodiscard]] Language language();
 // Cycles to the next language and saves the choice.
 void next_language();
-// The current language's own name: "English", "Português".
+// The current language's own name: "English", "Português", "Español (España)".
 [[nodiscard]] const char *language_name();
 
 // `english` in the current language.

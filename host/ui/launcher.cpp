@@ -508,7 +508,7 @@ void Launcher::home(ImVec2 min, ImVec2 max) {
     const float area = std::round(std::min(width - pad * 2.0f, font * 46.0f));
     heading(tr("QUICK SETTINGS"), {min.x + pad, y}, area, font * 1.05f);
     y += std::round(font * 1.9f);
-    const float foot = std::round(font * 1.8f);
+    const float foot = std::round(font * 2.6f);
     const bool two = area >= font * 34.0f;
     const float gap = std::round(font * 1.2f);
     const float column = two ? std::round((area - gap) * 0.5f) : area;
@@ -552,6 +552,11 @@ void Launcher::home(ImVec2 min, ImVec2 max) {
         const ImVec2 size = ImGui::CalcTextSize(credits);
         draw->AddText({std::round(max.x - pad - size.x), line_y}, rgb(theme_.text_dim, 200), credits);
     }
+    // Sparta ES: the Spanish translation's credit, whatever the interface's language.
+    const char *es_credit = "Traducción española por Donelys";
+    const ImVec2 es_size = ImGui::CalcTextSize(es_credit);
+    draw->AddText({std::round(max.x - pad - es_size.x), std::round(line_y + font)}, rgb(theme_.text_dim, 200),
+                  es_credit);
     ImGui::PopFont();
 }
 

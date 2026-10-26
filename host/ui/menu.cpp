@@ -1597,6 +1597,9 @@ void Menu::system() {
         info_row("Saves folder", install::path_to_utf8(savedata::memory_stick() / "PSP" / "SAVEDATA"));
     info_row("Graphics", "Vulkan on " + renderer().device_name());
     info_row("Interface", std::string("Dear ImGui ") + IMGUI_VERSION);
+    // Sparta ES: who made this build, and whose work it rests on.
+    info_row("Sparta ES — by Donelys", "Traducción al español de España y adaptación del launcher por Donelys");
+    info_row("Original", "arnaldolima1 (port), TeamGDB (PortableKit)");
 }
 
 // The quit and setup confirmations. False when the menu should close.

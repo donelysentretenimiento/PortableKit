@@ -104,6 +104,7 @@ set(PORTABLEKIT_RENDERER_SOURCES
     host/input/motion.cpp
     host/input/steam_deck_imu.cpp
     host/ui/i18n.cpp
+    host/ui/i18n_es.cpp
     host/ui/input_script.cpp
     host/ui/launcher.cpp
     host/ui/layer.cpp

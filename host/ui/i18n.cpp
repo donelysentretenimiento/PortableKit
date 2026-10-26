@@ -5,6 +5,7 @@
 #include "ui/i18n.hpp"
 
 #include "settings/settings.hpp"
+#include "ui/i18n_es.hpp"
 
 #include <SDL3/SDL.h>
 
@@ -569,14 +570,30 @@ const Table &portuguese() {
     return table;
 }
 
+const Table &spanish() {
+    static const Table table = [] {
+        Table t;
+        for (std::size_t i = 0; i < kSpanishCount; ++i) t.emplace(kSpanish[i].english, kSpanish[i].spanish);
+        return t;
+    }();
+    return table;
+}
+
+// The table of the current (not English) language.
+const Table &table_for(Language l) { return l == Language::Spanish ? spanish() : portuguese(); }
+
 Language system_language() {
     static const Language system = [] {
         int count = 0;
         SDL_Locale **locales = SDL_GetPreferredLocales(&count);
-        const bool pt = locales != nullptr && count > 0 && locales[0]->language != nullptr &&
-                        std::string_view(locales[0]->language) == "pt";
+        const std::string_view first = locales != nullptr && count > 0 && locales[0]->language != nullptr
+                                           ? std::string_view(locales[0]->language)
+                                           : std::string_view();
+        const Language found = first == "pt"   ? Language::Portuguese
+                               : first == "es" ? Language::Spanish
+                                               : Language::English;
         SDL_free(locales);
-        return pt ? Language::Portuguese : Language::English;
+        return found;
     }();
     return system;
 }
@@ -586,27 +603,33 @@ Language system_language() {
 Language language() {
     const std::string &chosen = settings::current().language;
     if (chosen == "pt") return Language::Portuguese;
+    if (chosen == "es" || chosen == "es-ES") return Language::Spanish;
     if (chosen == "en") return Language::English;
     return system_language();
 }
 
 void next_language() {
-    settings::current().language = language() == Language::Portuguese ? "en" : "pt";
+    // English, Portuguese, Spanish, and round again.
+    const Language now = language();
+    settings::current().language = now == Language::English ? "pt" : now == Language::Portuguese ? "es" : "en";
     settings::save();
 }
 
-const char *language_name() { return language() == Language::Portuguese ? "Português" : "English"; }
+const char *language_name() {
+    const Language now = language();
+    return now == Language::Portuguese ? "Português" : now == Language::Spanish ? "Español (España)" : "English";
+}
 
 const char *tr(const char *english) {
     if (english == nullptr || language() == Language::English) return english;
-    const Table &table = portuguese();
+    const Table &table = table_for(language());
     const auto found = table.find(english);
     return found == table.end() ? english : found->second;
 }
 
 std::string tr(const std::string &english) {
     if (english.empty() || language() == Language::English) return english;
-    const Table &table = portuguese();
+    const Table &table = table_for(language());
     const auto found = table.find(english);
     return found == table.end() ? english : std::string(found->second);
 }
